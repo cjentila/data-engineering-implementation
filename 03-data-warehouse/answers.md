@@ -79,7 +79,7 @@ doubling the estimated bytes processed.
 - BigQuery automatically caches the first queried column, so adding a second column increases processing time but does not affect the estimated bytes scanned.
 - When selecting multiple columns, BigQuery performs an implicit join operation between them, increasing the estimated bytes processed
 
-### Answer
+## Answer
 - BigQuery is a columnar database, and it only scans the specific columns requested in the query. Querying two columns (PULocationID, DOLocationID) requires 
 reading more data than querying one column (PULocationID), leading to a higher estimated number of bytes processed.
 
@@ -96,7 +96,7 @@ How many records have a fare_amount of 0?
 - 20,188,016
 - 8,333
 
-### Answer
+## Answer
 - 8333
 ```
 SELECT COUNT(*) as count 
@@ -114,7 +114,7 @@ What is the best strategy to make an optimized table in Big Query if your query 
 - Cluster on tpep_dropoff_datetime Partition by VendorID
 - Partition by tpep_dropoff_datetime and Partition by VendorID
 
-### Answer 
+## Answer 
 - Partition by tpep_dropoff_datetime and Cluster on VendorID
 
 ```
@@ -145,7 +145,7 @@ Choose the answer which most closely matches.
 - 310.31 MB for non-partitioned table and 285.64 MB for the partitioned table
 
 
-### Answer
+## Answer
 - 310.24 MB for non-partitioned table and 26.84 MB for the partitioned table
 
 ```
@@ -169,7 +169,7 @@ Where is the data stored in the External Table you created?
 - GCP Bucket
 - Big Table
 
-### Answer
+## Answer
 - GCP Bucket
 
 ## Question 8. Clustering best practices
@@ -178,12 +178,12 @@ It is best practice in Big Query to always cluster your data:
 - True
 - False
 
-### Answer
+## Answer
 - True
 
 ## Question 9. Understanding table scans
 
 No Points: Write a `SELECT count(*)` query FROM the materialized table you created. How many bytes does it estimate will be read? Why?
 
-### Answer
-Curently it shows me 0 B, because I've executed it before hence the result have been cached.
+## Answer
+Currently it shows me 0 B, because I've executed it before hence the result have been cached.
