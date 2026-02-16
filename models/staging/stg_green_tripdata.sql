@@ -29,4 +29,4 @@ SELECT
     SAFE_CAST(congestion_surcharge AS NUMERIC) congestion_surcharge
 FROM {{ source('raw_data', 'green_tripdata_partitioned') }} 
 WHERE lpep_pickup_datetime BETWEEN '2019-02-01' AND '2019-02-28'
-AND NULLIF(VendorID, '') IS NOT NULL
+AND VendorID IS NOT NULL
