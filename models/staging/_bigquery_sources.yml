@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: raw_data
+    description: "Raw data sources for NYC taxi data"
+    database: project-6d746325-0462-4208-9ca # Project ID GCP
+    schema: nytaxi # Dataset name in BigQuery
+    tables:
+      - name: yellow_tripdata_partitioned
+      - name: green_tripdata_partitioned
