@@ -1,3 +1,3 @@
 SELECT 
     *
-FROM {{ ref('payment_lookup') }}
+FROM {{ ref('payment_type_lookup') }}

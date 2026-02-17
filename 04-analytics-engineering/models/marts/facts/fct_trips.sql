@@ -1,41 +1,61 @@
-WITH TRIPS AS (
-    SELECT *
-    FROM {{ ref('int_trips') }}
-),
-UNIQUE_TRIPS AS (
-    SELECT
-        trip_id,
-        vendor_id,
-        rate_code_id,
-        pickup_location_id,
-        dropoff_location_id,
+{{
+  config(
+    materialized='incremental',
+    unique_key='trip_id',
+    incremental_strategy='merge',
+    on_schema_change='append_new_columns'  )
+}}
 
-        -- Max timestamps due to duplicate trips which are just cummulative trip recorded
-        MAX(pickup_datetime) pickup_datetime,
-        MAX(dropoff_datetime) dropoff_datetime,
-        MAX(trip_duration) trip_duration, -- Max trip_duration due to duplicate trips which are just cummulative trip recorded
+-- Fact table containing all taxi trips enriched with zone information
+-- This is a classic star schema design: fact table (trips) joined to dimension table (zones)
+-- Materialized incrementally to handle large datasets efficiently
 
-        -- trip info
-        store_and_fwd_flag,
-        trip_type,
-        passenger_count,
-        SUM(trip_distance) trip_distance, -- Sum the trip_distance due to cumulative cases
+select
+    -- Trip identifiers
+    trips.trip_id,
+    trips.vendor_id,
+    trips.service_type,
+    trips.rate_code_id,
 
-        -- payment info
-        MAX(payment_type) payment_type, -- Max payment type since refunds/reconcile have types > 3
-        -- Sum the amounts due to refunds, and cumulative total of duplicate trip_ids
-        SUM(fare_amount) fare_amount,
-        SUM(extra) extra,
-        SUM(mta_tax) mta_tax,
-        SUM(tip_amount) tip_amount,
-        SUM(tolls_amount) tolls_amount,
-        SUM(ehail_fee) ehail_fee,
-        SUM(improvement_surcharge) improvement_surcharge,
-        SUM(congestion_surcharge) congestion_surcharge,
-        SUM(total_amount) total_amount
-    FROM TRIPS
-    GROUP BY ALL
-)
-SELECT 
-    *
-FROM UNIQUE_TRIPS
+    -- Location details (enriched with human-readable zone names from dimension)
+    trips.pickup_location_id,
+    pz.borough as pickup_borough,
+    pz.zone as pickup_zone,
+    trips.dropoff_location_id,
+    dz.borough as dropoff_borough,
+    dz.zone as dropoff_zone,
+
+    -- Trip timing
+    trips.pickup_datetime,
+    trips.dropoff_datetime,
+    trips.store_and_fwd_flag,
+
+    -- Trip metrics
+    trips.passenger_count,
+    trips.trip_distance,
+    trips.trip_type,
+    {{ get_trip_duration_minutes('trips.pickup_datetime', 'trips.dropoff_datetime') }} as trip_duration_minutes,
+
+    -- Payment breakdown
+    trips.fare_amount,
+    trips.extra,
+    trips.mta_tax,
+    trips.tip_amount,
+    trips.tolls_amount,
+    trips.ehail_fee,
+    trips.improvement_surcharge,
+    trips.total_amount,
+    trips.payment_type,
+    trips.payment_type_description
+
+from {{ ref('int_trips') }} as trips
+-- LEFT JOIN preserves all trips even if zone information is missing or unknown
+left join {{ ref('dim_zones') }} as pz
+    on trips.pickup_location_id = pz.location_id
+left join {{ ref('dim_zones') }} as dz
+    on trips.dropoff_location_id = dz.location_id
+
+{% if is_incremental() %}
+  -- Only process new trips based on pickup datetime
+  where trips.pickup_datetime > (select max(pickup_datetime) from {{ this }})
+{% endif %}

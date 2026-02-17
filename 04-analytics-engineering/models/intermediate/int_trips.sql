@@ -1,24 +1,64 @@
-WITH TRIPS AS (
-    SELECT
-        MD5(
-            vendor_id || 
-            pickup_location_id || 
-            pickup_datetime || 
-            dropoff_location_id || 
-            dropoff_datetime || 
-            trip_type
-        ) AS trip_id,
-        *,
-        TIMESTAMP_DIFF(dropoff_datetime, pickup_datetime, MINUTE) AS trip_duration
-    FROM {{ ref('int_trips_union') }}
-    WHERE store_and_fwd_flag = true
+-- Enrich and deduplicate trip data
+-- Demonstrates enrichment and surrogate key generation
+-- Note: Data quality analysis available in analyses/trips_data_quality.sql
+
+with unioned as (
+    select * from {{ ref('int_trips_union') }}
 ),
-TRIP_CUMULATIVE_AMOUNT AS (
-    SELECT 
-        *,
-        SUM(total_amount) OVER(PARTITION BY trip_id ORDER BY trip_duration) cumulative_total_amount
-    FROM TRIPS
+
+payment_types as (
+    select * from {{ ref('payment_type_lookup') }}
+),
+
+cleaned_and_enriched as (
+    select
+        -- Generate unique trip identifier (surrogate key pattern)
+        MD5(u.vendor_id || u.pickup_datetime || u.pickup_location_id || u.service_type)as trip_id,
+
+        -- Identifiers
+        u.vendor_id,
+        u.service_type,
+        u.rate_code_id,
+
+        -- Location IDs
+        u.pickup_location_id,
+        u.dropoff_location_id,
+
+        -- Timestamps
+        u.pickup_datetime,
+        u.dropoff_datetime,
+
+        -- Trip details
+        u.store_and_fwd_flag,
+        u.passenger_count,
+        u.trip_distance,
+        u.trip_type,
+
+        -- Payment breakdown
+        u.fare_amount,
+        u.extra,
+        u.mta_tax,
+        u.tip_amount,
+        u.tolls_amount,
+        u.ehail_fee,
+        u.improvement_surcharge,
+        u.total_amount,
+
+        -- Enrich with payment type description
+        coalesce(u.payment_type, 0) as payment_type,
+        coalesce(pt.description, 'Unknown') as payment_type_description
+
+    from unioned u
+    left join payment_types pt
+        on coalesce(u.payment_type, 0) = pt.payment_type
 )
-SELECT 
-    *
-FROM TRIP_CUMULATIVE_AMOUNT
+
+select * from cleaned_and_enriched
+
+-- Deduplicate: if multiple trips match (same vendor, second, location, service), keep first
+qualify row_number() over(
+    partition by vendor_id, pickup_datetime, pickup_location_id, service_type
+    order by dropoff_datetime
+) = 1-- Enrich and deduplicate trip data
+-- Demonstrates enrichment and surrogate key generation
+-- Note: Data quality analysis available in analyses/trips_data_quality.sql
