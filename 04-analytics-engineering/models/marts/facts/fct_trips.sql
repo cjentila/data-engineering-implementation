@@ -22,7 +22,7 @@ UNIQUE_TRIPS AS (
         SUM(trip_distance) trip_distance, -- Sum the trip_distance due to cumulative cases
 
         -- payment info
-        payment_type,
+        MAX(payment_type) payment_type, -- Max payment type since refunds/reconcile have types > 3
         -- Sum the amounts due to refunds, and cumulative total of duplicate trip_ids
         SUM(fare_amount) fare_amount,
         SUM(extra) extra,
