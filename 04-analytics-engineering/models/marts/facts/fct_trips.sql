@@ -21,6 +21,8 @@ UNIQUE_TRIPS AS (
         passenger_count,
         SUM(trip_distance) trip_distance, -- Sum the trip_distance due to cumulative cases
 
+        -- payment info
+        payment_type,
         -- Sum the amounts due to refunds, and cumulative total of duplicate trip_ids
         SUM(fare_amount) fare_amount,
         SUM(extra) extra,
