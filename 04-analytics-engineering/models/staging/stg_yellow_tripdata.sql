@@ -7,12 +7,12 @@ SELECT
     SAFE_CAST(DOLocationID AS INTEGER) dropoff_location_id, 
 
     -- timestamps
-    SAFE_CAST(lpep_pickup_datetime AS TIMESTAMP) pickup_datetime, 
-    SAFE_CAST(lpep_dropoff_datetime AS TIMESTAMP) dropoff_datetime, 
+    SAFE_CAST(tpep_pickup_datetime AS TIMESTAMP) pickup_datetime, 
+    SAFE_CAST(tpep_dropoff_datetime AS TIMESTAMP) dropoff_datetime, 
 
     -- trip info
     SAFE_CAST(store_and_fwd_flag AS BOOLEAN) store_and_fwd_flag, 
-    COALESCE(SAFE_CAST(trip_type AS INTEGER), 99) trip_type, 
+    1 AS trip_type, 
     SAFE_CAST(passenger_count AS INTEGER) passenger_count, 
     SAFE_CAST(trip_distance AS INTEGER) trip_distance, 
 
@@ -23,9 +23,9 @@ SELECT
     SAFE_CAST(mta_tax AS NUMERIC) mta_tax, 
     SAFE_CAST(tip_amount AS NUMERIC) tip_amount, 
     SAFE_CAST(tolls_amount AS NUMERIC) tolls_amount, 
-    SAFE_CAST(ehail_fee AS NUMERIC) ehail_fee, 
+    0 AS ehail_fee, 
     SAFE_CAST(improvement_surcharge AS NUMERIC) improvement_surcharge, 
     SAFE_CAST(total_amount AS NUMERIC) total_amount, 
     SAFE_CAST(congestion_surcharge AS NUMERIC) congestion_surcharge
-FROM {{ source('raw_data', 'green_tripdata_partitioned') }} 
+FROM {{ source('raw_data', 'yellow_tripdata_partitioned') }} 
 WHERE VendorID IS NOT NULL
