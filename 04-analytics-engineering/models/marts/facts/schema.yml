@@ -33,7 +33,7 @@ models:
     columns:
       - name: trip_id
         description: Unique trip identifier
-        data_type: bytes
+        data_type: string
         data_tests:
           - unique
           - not_null
