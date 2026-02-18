@@ -11,10 +11,10 @@ SELECT
     SAFE_CAST(lpep_dropoff_datetime AS TIMESTAMP) dropoff_datetime, 
 
     -- trip info
-    SAFE_CAST(store_and_fwd_flag AS BOOLEAN) store_and_fwd_flag, 
-    COALESCE(SAFE_CAST(trip_type AS INTEGER), 99) trip_type, 
+    SAFE_CAST(store_and_fwd_flag AS STRING) store_and_fwd_flag, 
+    SAFE_CAST(trip_type AS INTEGER) trip_type, 
     SAFE_CAST(passenger_count AS INTEGER) passenger_count, 
-    SAFE_CAST(trip_distance AS INTEGER) trip_distance, 
+    SAFE_CAST(trip_distance AS NUMERIC) trip_distance, 
 
     -- payment info
     SAFE_CAST(payment_type AS INTEGER) AS payment_type, 
